@@ -1,0 +1,116 @@
+<!--
+Chart Data Survey (com.dartware.chartdatasurvey.txt)
+Retrieve survey info about the IM server's Chart Data files
+-->
+
+<header>
+    type            =    "cmd-line"
+    package         =    "com.dartware"
+    probe_name      =    "chartdatasurvey"
+    human_name      =    "Chart Data Survey"
+    version         =    "1.0"
+    address_type    =    "IP"
+    display_name    =    "Miscellaneous/Test/Chart Data Survey"
+</header>
+
+<description>
+\GB\Chart Data Survey\p\
+
+</description>
+
+<parameters>
+    "Desired Severity" = "Warn"
+    "Text for stdin" = "This text will be passed in through stdin"
+</parameters>
+
+<command-line>
+   path   =   ""
+   cmd    =   "${PYTHON} test.py"
+   arg    =   "${Desired Severity}"
+   input  =   "${Text for stdin}"s
+</command-line>
+
+<command-exit>
+-- The full range of InterMapper status/exit codes
+        down:    ${EXIT_CODE}=4
+    critical:    ${EXIT_CODE}=3
+       alarm:    ${EXIT_CODE}=2
+        warn:    ${EXIT_CODE}=1
+        okay:    ${EXIT_CODE}=0
+</command-exit>
+
+<command-display>
+\b5\Companion Script Return Values\p0\
+\4\  Value1:\0\ $val1
+\4\  Value2:\0\ $val2
+</command-display>
+
+<tool:test.py>
+'''
+Slightly more complicated example to:
+- Import a module from a directory that's in the InterMapper Settings/Tools folder
+- Define a main function that does the normal work of a command line probe:
+   - Read the first argument (use it to set exit code and thus, the device severity)
+   - Read a line from stdin
+   - Compare the argument to expected values, set returnval
+   - Print a single line as stdout, formatting returned variables and the condition string
+   - Return value from main() sets the script's exit code
+'''
+
+import os
+import sys
+
+### Set up additional directories to be included for imports
+wd = os.getcwd()                         # Get working directory of the script (usually InterMapper Settings/Tools/your.domain.your.package)
+(pd, rem) = os.path.split(wd)            # split off the parent directory - this yields the path to the "Tools" directory
+sys.path.append(os.path.join(pd, "YOUR-MODULE")) # insert the directory into the sys.path variable
+# print " " + wd + " " + pd              # debugging, comment out for production code
+# print sys.path
+
+# NOTE: Uncomment next line and replace "YOUR-MODULE" with the actual module name
+# import YOUR-MODULE                     # Python now looks into that directory, so you can import it
+
+
+def main(argv=None):
+
+    ### Get the first argument that was passed into the script
+    args = sys.argv[1:]                      # retrieve the arguments
+    if len(args) == 0:                       # handle missing argument
+        arg = "First argument missing"
+    else:
+        arg = args[0]
+    # print "Arg is: '%s'" % arg            # debugging - comment out
+
+    ##### Read one line from stdin (that's all that will be passed in)
+    f = sys.stdin                            # open stdin
+    stdinstr = f.readline().strip()          # get the line & remove leading & trailing whitespace
+    stdinstr = "stdin contains '%s'" % stdinstr
+    # print stdinstr                         # debugging - comment out
+
+    ### Set the return value from the script
+    ### Choices are: OK, Warn, Alarm, Critical, Down
+    argl = arg.lower()                       # allow upper/lowercase severity
+    if argl == "ok":
+       returnval = 0
+    elif argl == "warn":
+        returnval = 1
+    elif argl == "alarm":
+        returnval = 2
+    elif argl == "critical":
+        returnval = 3
+    elif argl == "down":
+        returnval = 4
+    else:
+        returnval = 3
+    severity = "Severity is '%s'; " % arg
+
+    ### Print a line to stdout with variables ($val1 & $val2) as well as the condition string
+    print "\{ $val1 := 1, $val2 := 'abcdef' }%s%s" % (severity, stdinstr)
+
+    ### Return value from this function sets the script's exit code
+    return returnval
+
+if __name__ == "__main__":
+    sys.exit(main())
+
+</tool:test.py>
