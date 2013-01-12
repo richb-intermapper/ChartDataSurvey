@@ -11,9 +11,20 @@ import os.path
 import re
 import pprint
 
+'''
+Convert seconds (from the epoch) to a desired date format
+'''
 def toDate(secs):
     return time.strftime("%d%b%Y",time.localtime(secs))
 
+'''
+Process all the files in the Chart Data folder
+
+Display file change/mod dates as well as first and last time stamps from the file
+Compute the "age" of the file in number of days since last time stamp
+Ignore "MetaDataCache" files (but count them)
+
+'''
 def ScanChartDataFolder(outfile):
     #================================================================================
     # List of all the files, total count of files and folders & Total size of files.
@@ -24,48 +35,68 @@ def ScanChartDataFolder(outfile):
     fileSize = 0
     folderCount = 0
     emptyCount = 0
+    cachesize = 0
+    cachecount = 0
+    inactivecount = 0
+    inactivesize = 0
     rootdir = "/Library/Application Support/InterMapper Settings/Chart Data.noindex"
 
     for root, subFolders, files in os.walk(rootdir):
         folderCount += len(subFolders)
         for file in files:
-            fp = os.path.join(root,file)                # fp is a file path
-            fileSize = fileSize + os.path.getsize(fp)
-            if (os.path.getsize(fp) == 0):
-                emptyCount += 1
-            elif (os.path.split(fp)[1] == "MetaDataCache"):
-                continue
+            fpath = os.path.join(root,file)                # fp is a file path
+            fileSize = fileSize + os.path.getsize(fpath)
+            if (os.path.split(fpath)[1] == "MetaDataCache"):
+                cachesize += os.path.getsize(fpath)
+                cachecount += 1
             else:
-                fileList.append(fp)                     # collect a list of non-empty paths
+                fileList.append(fpath)                     # collect a list of non-empty paths
 
-    outfile.write("Total Size is {0} bytes".format(fileSize) + "\n")
-    outfile.write("Data Files "+ str(len(fileList)) + "\n")
-    outfile.write("Empty Files "+ str(emptyCount) + "\n")
-    outfile.write("Total Folders "+ str(folderCount) + "\n")
-    outfile.write("Map      \tDatapoint\tLength\tcTime    \tmTime    \tFirst  \tLast" + "\n")
-
+    fileStats = []          # Formatted info about each file
     for fp in fileList:
         filename = os.path.split(fp)[1]
         dirname = os.path.split(os.path.dirname(fp))[1]
         chtime  = toDate(os.path.getctime(fp))
         modtime = toDate(os.path.getmtime(fp))
         flen = os.path.getsize(fp)
+        if (flen <= 0):
+            emptyCount += 1
+            first = "-"
+            last = "-"
+            inactive = "-"
+        else:
+            f = open(fp, "rb")
+            firstsec = struct.unpack("i",f.read(4))[0]
+            first = toDate(firstsec)
+            eof = (flen-8)/8
+            eof = eof*8
+            f.seek(eof)
+            lastsec = struct.unpack("i",f.read(4))[0]
+            last = toDate(lastsec)
+            if (eof+8 != flen):
+                last+="::"+str(flen%8)
+            lastsec = lastsec/(3600*24)
+            now = time.time()/(3600*24)
+            if (now - lastsec > 120):
+                inactive = str(int(now-lastsec))
+                inactivecount += 1
+                inactivesize += flen
+            else:
+                inactive = "-"
+            f.close()
+        outstr = dirname + "\t" + filename + "\t" + str(flen) + "\t" + chtime + "\t" + modtime + "\t" + first + "\t" + last + "\t" + inactive
 
-        f = open(fp, "rb")
-        first = toDate(struct.unpack("i",f.read(4))[0])
-        eof = (flen-8)/8
-        eof = eof*8
-        f.seek(eof)
-        last = toDate(struct.unpack("i",f.read(4))[0])
-        if (eof+8 != flen):
-            last+="::"+str(flen%8)
-        f.close()
-        # first = "123"
-        #last = "9876"
-        outstr = dirname + "\t" + filename + "\t" + str(flen) + "\t" + chtime + "\t" + modtime + "\t" + first + "\t" + last
+        fileStats.append(outstr)
 
-        outfile.write(outstr + "\n")
+    outfile.write("Data Files: %d contining %d bytes\n" % (len(fileList), fileSize))
+    outfile.write("Inactive files: %d containing %d bytes\n" % (inactivecount, inactivesize) )
+    outfile.write("Cache files: %d containing %d bytes\n" % (cachecount, cachesize) )
+    outfile.write("Empty Files: %d\n" % (emptyCount) )
+    outfile.write("Total Folders: %d\n" % (folderCount))
+    outfile.write("Map      \tDatapoint\tLength\tcTime    \tmTime    \tFirst   \tLast    \tDays Idle\n")
 
+    for line in fileStats:
+        outfile.write(line + "\n")
 
 
 def main(argv=None):
@@ -87,6 +118,7 @@ def main(argv=None):
 
     outfile = open('/tmp/workfile', 'w')
     ScanChartDataFolder(outfile)
+    outfile.close()
 
     ### Set the return value from the script
     ### Choices are: OK, Warn, Alarm, Critical, Down
@@ -106,7 +138,8 @@ def main(argv=None):
     severity = "Severity is '%s'; " % arg
 
     ### Print a line to stdout with variables ($val1 & $val2) as well as the condition string
-    print "\{ $val1 := 1, $val2 := 'abcdef' }%s%s" % (severity, stdinstr)
+    #print "\{ $val1 := 1, $val2 := 'abcdef' }%s%s" % (severity, stdinstr)
+    print "Done!"
 
     ### Return value from this function sets the script's exit code
     return returnval
