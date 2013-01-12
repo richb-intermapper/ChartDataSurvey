@@ -23,6 +23,7 @@ def ScanChartDataFolder(outfile):
     fileList = []
     fileSize = 0
     folderCount = 0
+    emptyCount = 0
     rootdir = "/Library/Application Support/InterMapper Settings/Chart Data.noindex"
 
     for root, subFolders, files in os.walk(rootdir):
@@ -30,11 +31,16 @@ def ScanChartDataFolder(outfile):
         for file in files:
             fp = os.path.join(root,file)                # fp is a file path
             fileSize = fileSize + os.path.getsize(fp)
-            #print(f)
-            fileList.append(fp)                         # collect a list of paths
+            if (os.path.getsize(fp) == 0):
+                emptyCount += 1
+            elif (os.path.split(fp)[1] == "MetaDataCache"):
+                continue
+            else:
+                fileList.append(fp)                     # collect a list of non-empty paths
 
     outfile.write("Total Size is {0} bytes".format(fileSize) + "\n")
-    outfile.write("Total Files "+ str(len(fileList)) + "\n")
+    outfile.write("Data Files "+ str(len(fileList)) + "\n")
+    outfile.write("Empty Files "+ str(emptyCount) + "\n")
     outfile.write("Total Folders "+ str(folderCount) + "\n")
     outfile.write("Map      \tDatapoint\tLength\tcTime    \tmTime    \tFirst  \tLast" + "\n")
 
@@ -44,23 +50,20 @@ def ScanChartDataFolder(outfile):
         chtime  = toDate(os.path.getctime(fp))
         modtime = toDate(os.path.getmtime(fp))
         flen = os.path.getsize(fp)
-        if (flen <= 0):
-            first = "-"
-            last = "-"
-        else:
-            f = open(fp, "rb")
-            first = toDate(struct.unpack("i",f.read(4))[0])
-            eof = (flen-8)/8
-            eof = eof*8
-            f.seek(eof)
-            last = toDate(struct.unpack("i",f.read(4))[0])
-            if (eof+8 != flen):
-                last+="::"+str(flen%8)
-            f.close()
-            # first = "123"
-            #last = "9876"
 
+        f = open(fp, "rb")
+        first = toDate(struct.unpack("i",f.read(4))[0])
+        eof = (flen-8)/8
+        eof = eof*8
+        f.seek(eof)
+        last = toDate(struct.unpack("i",f.read(4))[0])
+        if (eof+8 != flen):
+            last+="::"+str(flen%8)
+        f.close()
+        # first = "123"
+        #last = "9876"
         outstr = dirname + "\t" + filename + "\t" + str(flen) + "\t" + chtime + "\t" + modtime + "\t" + first + "\t" + last
+
         outfile.write(outstr + "\n")
 
 
