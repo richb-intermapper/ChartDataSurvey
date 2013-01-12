@@ -25,7 +25,7 @@ Compute the "age" of the file in number of days since last time stamp
 Ignore "MetaDataCache" files (but count them)
 
 '''
-def ScanChartDataFolder(outfile):
+def ScanChartDataFolder(chartdir, outfile):
     #================================================================================
     # List of all the files, total count of files and folders & Total size of files.
     # http://mayankjohri.wordpress.com/2008/07/02/create-list-of-files-in-a-dir-tree/
@@ -39,9 +39,11 @@ def ScanChartDataFolder(outfile):
     cachecount = 0
     inactivecount = 0
     inactivesize = 0
-    rootdir = "/Library/Application Support/InterMapper Settings/Chart Data.noindex"
 
-    for root, subFolders, files in os.walk(rootdir):
+    # sys.path.append(os.path.join(pd, "YOUR-MODULE")) # insert the directory into the sys.path variable
+    # rootdir = "/Library/Application Support/InterMapper Settings/Chart Data.noindex"
+
+    for root, subFolders, files in os.walk(chartdir):
         folderCount += len(subFolders)
         for file in files:
             fpath = os.path.join(root,file)                # fp is a file path
@@ -116,8 +118,15 @@ def main(argv=None):
     # print stdinstr                         # debugging - comment out
     stdinstr = ""
 
-    outfile = open('/tmp/workfile', 'w')
-    ScanChartDataFolder(outfile)
+    wd = os.getcwd()                    # Get path of working directory of the script (InterMapper Settings/Tools/your.domain.your.package)
+    (toolsd, rem) = os.path.split(wd)   # split off the parent directory - this yields the path to the "Tools" directory
+    (imdir, rem) = os.path.split(toolsd) # imdir is path to InterMapper Settings directory
+    chartdir = os.path.join(imdir, "Chart Data")
+    if (not os.path.exists(chartdir)):
+        chartdir = chartdir + ".noindex"
+
+    outfile = open(os.path.join(toolsd,"workfile.txt"), 'w')
+    ScanChartDataFolder(chartdir, outfile)
     outfile.close()
 
     ### Set the return value from the script
