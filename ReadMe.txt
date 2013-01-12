@@ -2,14 +2,14 @@ This InterMapper command-line probe collects survey information
 about the chart data files of an InterMapper server, as well as aging information about each
 chart data file. It collects the information, and dumps it to a file with this tab-delimited format:
 
-map-ID chart-ID os-creation-date os-last-modified first-timestamp last-timestamp file-size
+map-ID chart-ID file-size os-creation-date os-last-modified first-timestamp last-timestamp inactive-time
 
 The probe runs the command-line program and saves the data to the InterMapper Settings/Temporary folder.
 The status window shows the name of the saved file, and has a URL that allows it to be retrieved
 using a web browser.
 
 The probe has a built-in poll_interval of one million seconds (about 11.5 days), although Cmd/Ctl-K
-will reprobe it.
+will reprobe it immediately
 
 The output filename has this format: CharDataFiles-ddMMMyyyyhhmm
 
