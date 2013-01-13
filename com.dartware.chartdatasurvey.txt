@@ -182,6 +182,7 @@ def main(argv=None):
     ### Set the return value from the script
     ### Choices are: OK, Warn, Alarm, Critical, Down
     argl = arg.lower()                       # allow upper/lowercase severity
+    argl = "ok"
     if argl == "ok":
         returnval = 0
     elif argl == "warn":
@@ -197,7 +198,7 @@ def main(argv=None):
     severity = "Severity is '%s'; " % arg
 
     ### Print a line to stdout with variables ($val1 & $val2) as well as the condition string
-    print "\{ $val1 := %s }%s%s" % (datestamp,"Done! " + datestamp, stdinstr)
+    print "\{ $val1 := '%s' }%s%s" % (datestamp,"Done! " + datestamp, stdinstr)
     #print "Done!
 
     ### Return value from this function sets the script's exit code
