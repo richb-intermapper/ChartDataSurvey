@@ -53,6 +53,7 @@ Chart data files have entries that consist of a four-byte time stamp (in seconds
 
 <command-display>
 \b5\Chart Data Survey Probe\p0\
+
 </command-display>
 
 <tool:ChartDataSurvey.py>
