@@ -40,7 +40,7 @@ Retrieve survey info about the IM server's Chart Data files
 
 <command-display>
 \b5\Chart Data Survey Probe\p0\
-\4\  Data is at:\0\ http://this-server:this-port/~files/extensions/${val1}
+\4\  Data is at:\0\ ${val1} at the http://this-server:this-port/~files/extensions/ URL
 </command-display>
 
 <tool:ChartDataSurvey.py>
@@ -198,7 +198,7 @@ def main(argv=None):
     severity = "Severity is '%s'; " % arg
 
     ### Print a line to stdout with variables ($val1 & $val2) as well as the condition string
-    print "\{ $val1 := '%s' }%s%s" % (datestamp,"Done! " + datestamp, stdinstr)
+    print "\{ $val1 := '%s' }%s%s" % (datestamp,"Done!", stdinstr)
     #print "Done!
 
     ### Return value from this function sets the script's exit code
