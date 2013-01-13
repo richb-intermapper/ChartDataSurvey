@@ -47,12 +47,12 @@ def ScanChartDataFolder(chartdir, outfile):
         folderCount += len(subFolders)
         for file in files:
             fpath = os.path.join(root,file)                # fp is a file path
-            fileSize = fileSize + os.path.getsize(fpath)
+            fileSize += os.path.getsize(fpath)
             if (os.path.split(fpath)[1] == "MetaDataCache"):
                 cachesize += os.path.getsize(fpath)
                 cachecount += 1
             else:
-                fileList.append(fpath)                     # collect a list of non-empty paths
+                fileList.append(fpath)                     # collect a list of paths of chart data files
 
     fileStats = []          # Formatted info about each file
     for fp in fileList:
@@ -79,7 +79,7 @@ def ScanChartDataFolder(chartdir, outfile):
                 last+="::"+str(flen%8)
             lastsec = lastsec/(3600*24)
             now = time.time()/(3600*24)
-            if (now - lastsec > 120):
+            if (now - lastsec > 30):                    # no data within last N days? treat as inactive
                 inactive = str(int(now-lastsec))
                 inactivecount += 1
                 inactivesize += flen
@@ -90,16 +90,20 @@ def ScanChartDataFolder(chartdir, outfile):
 
         fileStats.append(outstr)
 
-    outfile.write("Data Files: %d contining %d bytes\n" % (len(fileList), fileSize))
-    outfile.write("Inactive files: %d containing %d bytes\n" % (inactivecount, inactivesize) )
-    outfile.write("Cache files: %d containing %d bytes\n" % (cachecount, cachesize) )
-    outfile.write("Empty Files: %d\n" % (emptyCount) )
-    outfile.write("Total Folders: %d\n" % (folderCount))
+    retstr = ""
+    retstr += "Chart Data Survey: %s\n" % (time.strftime("%d%b%Y-%H:%M"))
+    retstr += "Data Files: %d contining %d bytes\n" % (len(fileList), fileSize)
+    retstr += "Inactive files: %d containing %d bytes\n" % (inactivecount, inactivesize)
+    retstr += "Cache files: %d containing %d bytes\n" % (cachecount, cachesize)
+    retstr += "Empty Files: %d\n" % (emptyCount)
+    retstr += "Total Folders: %d\n" % (folderCount)
+
+    outfile.write(retstr)
     outfile.write("Map      \tDatapoint\tLength\tcTime    \tmTime    \tFirst   \tLast    \tDays Idle\n")
 
     for line in fileStats:
         outfile.write(line + "\n")
-
+    return retstr
 
 def main(argv=None):
 
@@ -125,13 +129,16 @@ def main(argv=None):
     if (not os.path.exists(chartdir)):
         chartdir = chartdir + ".noindex"
 
-    outfile = open(os.path.join(toolsd,"workfile.txt"), 'w')
-    ScanChartDataFolder(chartdir, outfile)
+    outfiledir = os.path.join(imdir, "Extensions")
+    datestamp = "ChartDataSurvey-" + toDate(time.time()) + ".txt"
+    outfile = open(os.path.join(outfiledir,datestamp), 'w')
+    retstr = ScanChartDataFolder(chartdir, outfile)
     outfile.close()
 
     ### Set the return value from the script
     ### Choices are: OK, Warn, Alarm, Critical, Down
     argl = arg.lower()                       # allow upper/lowercase severity
+    argl = "ok"
     if argl == "ok":
         returnval = 0
     elif argl == "warn":
@@ -147,8 +154,8 @@ def main(argv=None):
     severity = "Severity is '%s'; " % arg
 
     ### Print a line to stdout with variables ($val1 & $val2) as well as the condition string
-    #print "\{ $val1 := 1, $val2 := 'abcdef' }%s%s" % (severity, stdinstr)
-    print "Done!"
+    print "\{ $val1 := '%s' }%s%s" % (datestamp,retstr, stdinstr)
+    #print "Done!
 
     ### Return value from this function sets the script's exit code
     return returnval
