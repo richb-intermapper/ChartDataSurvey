@@ -8,10 +8,12 @@ The probe runs the command-line program and saves the data to the InterMapper Se
 The status window shows the name of the saved file, and has a URL that allows it to be retrieved
 using a web browser.
 
-The probe has a built-in poll_interval of one million seconds (about 11.5 days), although Cmd/Ctl-K
-will reprobe it immediately
+The probe has a built-in poll_interval of six hours, although Cmd/Ctl-K will reprobe it immediately
 
-The output filename has this format: CharDataFiles-ddMMMyyyyhhmm
+The output filename has this format: CharDataFiles-ddMMMyyyyhhmm.txt, and will be saved in the
+InterMapper Settings/Extensions folder. Its URL will be:
+
+http://im-server-info:port/~files/extensions/CharDataFiles-ddMMMyyyyhhmm.txt
 
 The program scans the entire "Chart Data" folder ("Chart Data.noindex" on OSX) and does a depth-first
 traversal of the file system. There are only two levels of hierarchy: the Chart Data folder holds
