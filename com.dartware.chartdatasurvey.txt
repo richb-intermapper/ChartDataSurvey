@@ -17,11 +17,24 @@ Retrieve survey info about the IM server's Chart Data files
 <description>
 \GB\Chart Data Survey\p\
 
+This InterMapper command-line probe collects survey information about the chart data files of an InterMapper server, as well as aging information about each chart data file. It collects the information, and dumps it to a file with this tab-delimited format:
+
+map-ID chart-ID file-size os-creation-date os-last-modified first-timestamp last-timestamp inactive-time
+
+The probe runs the command-line program and saves the data to the InterMapper Settings/Temporary folder. The status window shows the name of the saved file, and has a URL that allows it to be retrieved using a web browser.
+
+The probe has a built-in poll_interval of six hours, although Cmd/Ctl-K will reprobe it immediately
+
+The output filename has this format: CharDataFiles-ddMMMyyyyhhmm.txt, and will be saved in the InterMapper Settings/Extensions folder. Its URL will be:
+
+http://im-server-info:port/~files/extensions/CharDataFiles-ddMMMyyyyhhmm.txt
+
+The program scans the entire "Chart Data" folder ("Chart Data.noindex" on OSX) and does a depth-first traversal of the file system. There are only two levels of hierarchy: the Chart Data folder holds folders with the "graph ID" of a map (the "map-ID" above); Each of the folders holds zero or more chart data files that contain the data samples.
+
+Chart data files have entries that consist of a four-byte time stamp (in seconds since the epoch) and a four-byte data value. This program finds the first-timestamp at offset zero in the file, and the last-timestamp at the offset EOF-8.
 </description>
 
 <parameters>
-    "Desired Severity" = "Warn"
-    "Text for stdin" = "This text will be passed in through stdin"
 </parameters>
 
 <command-line>
@@ -40,7 +53,6 @@ Retrieve survey info about the IM server's Chart Data files
 
 <command-display>
 \b5\Chart Data Survey Probe\p0\
-\4\  Data is at:\0\ ${val1} at the http://this-server:this-port/~files/extensions/ URL
 </command-display>
 
 <tool:ChartDataSurvey.py>
@@ -94,7 +106,7 @@ def ScanChartDataFolder(chartdir, outfile):
         folderCount += len(subFolders)
         for file in files:
             fpath = os.path.join(root,file)                # fp is a file path
-            fileSize = fileSize + os.path.getsize(fpath)
+            fileSize += os.path.getsize(fpath)
             if (os.path.split(fpath)[1] == "MetaDataCache"):
                 cachesize += os.path.getsize(fpath)
                 cachecount += 1
@@ -137,17 +149,21 @@ def ScanChartDataFolder(chartdir, outfile):
 
         fileStats.append(outstr)
 
-    outfile.write("Chart Data Survey: %s\n" % (time.strftime("%d%b%Y-%H:%M")))
-    outfile.write("Data Files: %d contining %d bytes\n" % (len(fileList), fileSize))
-    outfile.write("Inactive files: %d containing %d bytes\n" % (inactivecount, inactivesize) )
-    outfile.write("Cache files: %d containing %d bytes\n" % (cachecount, cachesize) )
-    outfile.write("Empty Files: %d\n" % (emptyCount) )
-    outfile.write("Total Folders: %d\n" % (folderCount))
+    retstr = ""
+    retstr += "Chart Data Survey: %s\n" % (time.strftime("%d%b%Y-%H:%M"))
+    retstr += "Data Files: %d contining %d bytes\n" % (len(fileList), fileSize)
+    retstr += "Inactive files: %d containing %d bytes\n" % (inactivecount, inactivesize)
+    retstr += "Cache files: %d containing %d bytes\n" % (cachecount, cachesize)
+    retstr += "Empty Files: %d\n" % (emptyCount)
+    retstr += "Total Folders: %d\n" % (folderCount)
+
+    outfile.write(retstr)
+
     outfile.write("Map      \tDatapoint\tLength\tcTime    \tmTime    \tFirst   \tLast    \tDays Idle\n")
 
     for line in fileStats:
         outfile.write(line + "\n")
-
+    return retstr
 
 def main(argv=None):
 
@@ -176,7 +192,8 @@ def main(argv=None):
     outfiledir = os.path.join(imdir, "Extensions")
     datestamp = "ChartDataSurvey-" + toDate(time.time()) + ".txt"
     outfile = open(os.path.join(outfiledir,datestamp), 'w')
-    ScanChartDataFolder(chartdir, outfile)
+    retstr = ScanChartDataFolder(chartdir, outfile)
+    retstr += "Detailed data at: http://this-server:this-port/~files/extensions/%s\n" % (datestamp)
     outfile.close()
 
     ### Set the return value from the script
@@ -198,7 +215,7 @@ def main(argv=None):
     severity = "Severity is '%s'; " % arg
 
     ### Print a line to stdout with variables ($val1 & $val2) as well as the condition string
-    print "\{ $val1 := '%s' }%s%s" % (datestamp,"Done!", stdinstr)
+    print "\{ $val1 := '%s' }%s%s" % (datestamp,retstr, stdinstr)
     #print "Done!
 
     ### Return value from this function sets the script's exit code
