@@ -11,6 +11,7 @@ Retrieve survey info about the IM server's Chart Data files
     version         =    "1.0"
     address_type    =    "IP"
     display_name    =    "Miscellaneous/Test/Chart Data Survey"
+    poll_interval   =    "21600"
 </header>
 
 <description>
@@ -25,9 +26,7 @@ Retrieve survey info about the IM server's Chart Data files
 
 <command-line>
    path   =   ""
-   cmd    =   "${PYTHON} test.py"
-   arg    =   "${Desired Severity}"
-   input  =   "${Text for stdin}"s
+   cmd    =   "${PYTHON} ChartDataSurvey.py"
 </command-line>
 
 <command-exit>
@@ -40,12 +39,11 @@ Retrieve survey info about the IM server's Chart Data files
 </command-exit>
 
 <command-display>
-\b5\Companion Script Return Values\p0\
-\4\  Value1:\0\ $val1
-\4\  Value2:\0\ $val2
+\b5\Chart Data Survey Probe\p0\
+\4\  Data is at:\0\ http://this-server:this-port/~files/extensions/${val1}
 </command-display>
 
-<tool:test.py>
+<tool:ChartDataSurvey.py>
 
 import os
 import cgi
@@ -101,7 +99,7 @@ def ScanChartDataFolder(chartdir, outfile):
                 cachesize += os.path.getsize(fpath)
                 cachecount += 1
             else:
-                fileList.append(fpath)                     # collect a list of non-empty paths
+                fileList.append(fpath)                     # collect a list of paths of chart data files
 
     fileStats = []          # Formatted info about each file
     for fp in fileList:
@@ -128,7 +126,7 @@ def ScanChartDataFolder(chartdir, outfile):
                 last+="::"+str(flen%8)
             lastsec = lastsec/(3600*24)
             now = time.time()/(3600*24)
-            if (now - lastsec > 120):
+            if (now - lastsec > 30):                    # no data within last N days? treat as inactive
                 inactive = str(int(now-lastsec))
                 inactivecount += 1
                 inactivesize += flen
@@ -139,6 +137,7 @@ def ScanChartDataFolder(chartdir, outfile):
 
         fileStats.append(outstr)
 
+    outfile.write("Chart Data Survey: %s\n" % (time.strftime("%d%b%Y-%H:%M")))
     outfile.write("Data Files: %d contining %d bytes\n" % (len(fileList), fileSize))
     outfile.write("Inactive files: %d containing %d bytes\n" % (inactivecount, inactivesize) )
     outfile.write("Cache files: %d containing %d bytes\n" % (cachecount, cachesize) )
@@ -174,7 +173,9 @@ def main(argv=None):
     if (not os.path.exists(chartdir)):
         chartdir = chartdir + ".noindex"
 
-    outfile = open(os.path.join(toolsd,"workfile.txt"), 'w')
+    outfiledir = os.path.join(imdir, "Extensions")
+    datestamp = "ChartDataSurvey-" + toDate(time.time()) + ".txt"
+    outfile = open(os.path.join(outfiledir,datestamp), 'w')
     ScanChartDataFolder(chartdir, outfile)
     outfile.close()
 
@@ -196,8 +197,8 @@ def main(argv=None):
     severity = "Severity is '%s'; " % arg
 
     ### Print a line to stdout with variables ($val1 & $val2) as well as the condition string
-    #print "\{ $val1 := 1, $val2 := 'abcdef' }%s%s" % (severity, stdinstr)
-    print "Done!"
+    print "\{ $val1 := %s }%s%s" % (datestamp,"Done! " + datestamp, stdinstr)
+    #print "Done!
 
     ### Return value from this function sets the script's exit code
     return returnval
@@ -205,4 +206,4 @@ def main(argv=None):
 if __name__ == "__main__":
     sys.exit(main())
 
-</tool:test.py>
+</tool:ChartDataSurvey.py>
