@@ -39,6 +39,7 @@ def ScanChartDataFolder(chartdir, outfile):
     cachecount = 0
     inactivecount = 0
     inactivesize = 0
+    newestfile = 0
 
     # sys.path.append(os.path.join(pd, "YOUR-MODULE")) # insert the directory into the sys.path variable
     # rootdir = "/Library/Application Support/InterMapper Settings/Chart Data.noindex"
@@ -46,13 +47,30 @@ def ScanChartDataFolder(chartdir, outfile):
     for root, subFolders, files in os.walk(chartdir):
         folderCount += len(subFolders)
         for file in files:
-            fpath = os.path.join(root,file)                # fp is a file path
+            fpath = os.path.join(root,file)                 # fp is a file path
             fileSize += os.path.getsize(fpath)
-            if (os.path.split(fpath)[1] == "MetaDataCache"):
+            fname = os.path.split(fpath)[1]
+            if (fname == "MetaDataCache"):                  # count, but ignore MetaDataCache files
                 cachesize += os.path.getsize(fpath)
                 cachecount += 1
+            elif (fname[0:2] == "._"):                      # ignore files with ._ prefix
+                continue
+            elif (fname[0:15] == "ChartDataSurvey"):        # ignore any of our ChartDataSurvey files
+                continue
             else:
-                fileList.append(fpath)                     # collect a list of paths of chart data files
+                fileList.append(fpath)                      # collect a list of paths of chart data files
+                if (os.path.getmtime(fpath) > newestfile):
+                    newestfile = os.path.getmtime(fpath)    # remember the newest file mod date
+
+    # print ("Newest: %d, %s") % (newestfile, toDate(newestfile))
+
+    for fp in fileList:                                     # scan the files looking for evidence of big/little endian-ness
+        if (fp[-4:] == "RtyB"):                             # Only need to find one - usually won't have to look at very many
+            byteorder = "<i"                                # little endian
+            break
+        elif (fp[-4:] == "BytR"):
+            byteorder = ">i"                                # big endian
+            break
 
     fileStats = []          # Formatted info about each file
     for fp in fileList:
@@ -68,17 +86,17 @@ def ScanChartDataFolder(chartdir, outfile):
             inactive = "-"
         else:
             f = open(fp, "rb")
-            firstsec = struct.unpack("i",f.read(4))[0]
+            firstsec = struct.unpack(byteorder,f.read(4))[0]
             first = toDate(firstsec)
             eof = (flen-8)/8
             eof = eof*8
             f.seek(eof)
-            lastsec = struct.unpack("i",f.read(4))[0]
+            lastsec = struct.unpack(byteorder,f.read(4))[0]
             last = toDate(lastsec)
             if (eof+8 != flen):
                 last+="::"+str(flen%8)
             lastsec = lastsec/(3600*24)
-            now = time.time()/(3600*24)
+            now = newestfile/(3600*24)
             if (now - lastsec > 30):                    # no data within last N days? treat as inactive
                 inactive = str(int(now-lastsec))
                 inactivecount += 1
@@ -110,9 +128,9 @@ def main(argv=None):
 ### Get the first argument that was passed into the script
     args = sys.argv[1:]                      # retrieve the arguments
     if len(args) == 0:                       # handle missing argument
-        arg = "First argument missing"
+        chartdir = ""
     else:
-        arg = args[0]
+        chartdir = args[0]
         # print "Arg is: '%s'" % arg            # debugging - comment out
 
     ##### Read one line from stdin (that's all that will be passed in)
@@ -123,13 +141,16 @@ def main(argv=None):
     stdinstr = ""
 
     wd = os.getcwd()                    # Get path of working directory of the script (InterMapper Settings/Tools/your.domain.your.package)
-    (toolsd, rem) = os.path.split(wd)   # split off the parent directory - this yields the path to the "Tools" directory
-    (imdir, rem) = os.path.split(toolsd) # imdir is path to InterMapper Settings directory
-    chartdir = os.path.join(imdir, "Chart Data")
-    if (not os.path.exists(chartdir)):
-        chartdir = chartdir + ".noindex"
+    if (chartdir == ""):                # no chart directory specified
+        (toolsd, rem) = os.path.split(wd)   # split off the parent directory - this yields the path to the "Tools" directory
+        (imdir, rem) = os.path.split(toolsd) # imdir is path to InterMapper Settings directory
+        chartdir = os.path.join(imdir, "Chart Data")
+        if (not os.path.exists(chartdir)):
+            chartdir = chartdir + ".noindex"
+        outfiledir = os.path.join(imdir, "Extensions")
+    else:
+        outfiledir = chartdir           # just put the ChartDataSurvey file in the chart directory
 
-    outfiledir = os.path.join(imdir, "Extensions")
     datestamp = "ChartDataSurvey-" + toDate(time.time()) + ".txt"
     outfile = open(os.path.join(outfiledir,datestamp), 'w')
     retstr = ScanChartDataFolder(chartdir, outfile)
@@ -137,7 +158,7 @@ def main(argv=None):
 
     ### Set the return value from the script
     ### Choices are: OK, Warn, Alarm, Critical, Down
-    argl = arg.lower()                       # allow upper/lowercase severity
+    # argl = arg.lower()                       # allow upper/lowercase severity
     argl = "ok"
     if argl == "ok":
         returnval = 0
@@ -151,7 +172,7 @@ def main(argv=None):
         returnval = 4
     else:
         returnval = 3
-    severity = "Severity is '%s'; " % arg
+    # severity = "Severity is '%s'; " % arg
 
     ### Print a line to stdout with variables ($val1 & $val2) as well as the condition string
     print "\{ $val1 := '%s' }%s%s" % (datestamp,retstr, stdinstr)
