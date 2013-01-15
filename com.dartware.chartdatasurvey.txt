@@ -75,8 +75,11 @@ import pprint
 Convert seconds (from the epoch) to a desired date format
 '''
 def toDate(secs):
-    return time.strftime("%d%b%Y",time.localtime(secs))
-
+    try:
+        return time.strftime("%d%b%Y",time.localtime(secs))
+    except:
+        # print "Seconds: %d" % (secs)
+        return "odd-time"
 '''
 Process all the files in the Chart Data folder
 
