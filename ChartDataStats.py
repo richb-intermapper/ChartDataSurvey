@@ -1,15 +1,9 @@
 import os
-import cgi
-import urllib
 import time
-import socket
-import subprocess
 import sys
 import struct
-import time
-import os.path
-import re
-import pprint
+import getopt
+
 
 '''
 Convert seconds (from the epoch) to a desired date format
@@ -140,29 +134,20 @@ def main(argv=None):
     try:
         opts, args = getopt.getopt(sys.argv[1:], "c:b:", ["charts=", "brief="])
     except getopt.GetoptError, e:
-        p.usage()
+        print "ChartDataSurvey.p [--charts='directorypath'] [--brief=1]"
+        sys.exit(1)
+
+    chartdir = ""
+    brief = False
     for o,a in opts:
         if o in ("-c", "--charts"):
             chartdir = check(a)
         elif o in ("-b", "--brief"):
-            brief = check(a)
-
-#    args = sys.argv[1:]                      # retrieve the arguments
-#    if len(args) == 0:                       # handle missing argument
-#        chartdir = ""
-#    else:
-#        chartdir = args[0]
-#        # print "Arg is: '%s'" % arg            # debugging - comment out
-
-    ##### Read one line from stdin (that's all that will be passed in)
-    #    f = sys.stdin                            # open stdin
-    #    stdinstr = f.readline().strip()          # get the line & remove leading & trailing whitespace
-    #    stdinstr = "stdin contains '%s'" % stdinstr
-    # print stdinstr                         # debugging - comment out
-    stdinstr = ""
+             if (check(a) and a == "1"):
+                brief = True
 
     wd = os.getcwd()                            # Get path of working directory of the script (InterMapper Settings/Tools/your.domain.your.package)
-    if (chartdir):                              # no chart directory specified
+    if (chartdir == ""):                        # no chart directory specified
         (toolsd, rem) = os.path.split(wd)       # split off the parent directory - this yields the path to the "Tools" directory
         (imdir, rem) = os.path.split(toolsd)    # imdir is path to InterMapper Settings directory
         chartdir = os.path.join(imdir, "Chart Data")
@@ -195,8 +180,8 @@ def main(argv=None):
         returnval = 3
     # severity = "Severity is '%s'; " % arg
 
-    ### Print a line to stdout with variables ($val1 & $val2) as well as the condition string
-    print "\{ $val1 := '%s' }%s%s" % (datestamp,retstr, stdinstr)
+    ### Print a line to stdout with variables
+    print "\{ $val1 := '%s' }%s" % (datestamp,retstr)
     #print "Done!
 
     ### Return value from this function sets the script's exit code
