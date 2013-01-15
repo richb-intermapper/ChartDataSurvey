@@ -25,7 +25,7 @@ Compute the "age" of the file in number of days since last time stamp
 Ignore "MetaDataCache" files (but count them)
 
 '''
-def ScanChartDataFolder(chartdir, outfile):
+def ScanChartDataFolder(chartdir, outfile, brief):
     #================================================================================
     # List of all the files, total count of files and folders & Total size of files.
     # http://mayankjohri.wordpress.com/2008/07/02/create-list-of-files-in-a-dir-tree/
@@ -84,7 +84,11 @@ def ScanChartDataFolder(chartdir, outfile):
             first = "-"
             last = "-"
             inactive = "-"
-        else:
+        elif (brief):                                   # if brief, don't open the file
+            first = "-"
+            last = "-"
+            inactive = "-"
+        else:                                           # otherwise, open the file and get its info
             f = open(fp, "rb")
             firstsec = struct.unpack(byteorder,f.read(4))[0]
             first = toDate(firstsec)
@@ -125,13 +129,30 @@ def ScanChartDataFolder(chartdir, outfile):
 
 def main(argv=None):
 
+    def check(arg):
+        """Return the argument as a string if it exists. If not, return None. Used to type cast input from InterMapper."""
+        if arg == '' or arg is None: #InterMapper puts spaces in for blank values
+            return None
+        else:
+            return str(arg) #explicitly type-cast
+
 ### Get the first argument that was passed into the script
-    args = sys.argv[1:]                      # retrieve the arguments
-    if len(args) == 0:                       # handle missing argument
-        chartdir = ""
-    else:
-        chartdir = args[0]
-        # print "Arg is: '%s'" % arg            # debugging - comment out
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "c:b:", ["charts=", "brief="])
+    except getopt.GetoptError, e:
+        p.usage()
+    for o,a in opts:
+        if o in ("-c", "--charts"):
+            chartdir = check(a)
+        elif o in ("-b", "--brief"):
+            brief = check(a)
+
+#    args = sys.argv[1:]                      # retrieve the arguments
+#    if len(args) == 0:                       # handle missing argument
+#        chartdir = ""
+#    else:
+#        chartdir = args[0]
+#        # print "Arg is: '%s'" % arg            # debugging - comment out
 
     ##### Read one line from stdin (that's all that will be passed in)
     #    f = sys.stdin                            # open stdin
@@ -140,10 +161,10 @@ def main(argv=None):
     # print stdinstr                         # debugging - comment out
     stdinstr = ""
 
-    wd = os.getcwd()                    # Get path of working directory of the script (InterMapper Settings/Tools/your.domain.your.package)
-    if (chartdir == ""):                # no chart directory specified
-        (toolsd, rem) = os.path.split(wd)   # split off the parent directory - this yields the path to the "Tools" directory
-        (imdir, rem) = os.path.split(toolsd) # imdir is path to InterMapper Settings directory
+    wd = os.getcwd()                            # Get path of working directory of the script (InterMapper Settings/Tools/your.domain.your.package)
+    if (chartdir):                              # no chart directory specified
+        (toolsd, rem) = os.path.split(wd)       # split off the parent directory - this yields the path to the "Tools" directory
+        (imdir, rem) = os.path.split(toolsd)    # imdir is path to InterMapper Settings directory
         chartdir = os.path.join(imdir, "Chart Data")
         if (not os.path.exists(chartdir)):
             chartdir = chartdir + ".noindex"
@@ -153,7 +174,7 @@ def main(argv=None):
 
     datestamp = "ChartDataSurvey-" + toDate(time.time()) + ".txt"
     outfile = open(os.path.join(outfiledir,datestamp), 'w')
-    retstr = ScanChartDataFolder(chartdir, outfile)
+    retstr = ScanChartDataFolder(chartdir, outfile, brief)
     outfile.close()
 
     ### Set the return value from the script
