@@ -1,3 +1,13 @@
+# ChartDataStats.py
+#
+# Scan an InterMapper Settings folder to find all the chart data files
+# Categorize them by their filesystem dates as well as internal time stamps
+# Correlate with the current Maps folder (stub: Maps/5.6 folder) to determine
+#    if the charts are associated with enabled, disabled, or deleted maps
+# Write a tab-delimited file that gives info about all the files
+#
+# January 2013 -reb
+
 import os
 import time
 import sys
@@ -6,17 +16,17 @@ import getopt
 import socket
 
 
-"""
-Convert seconds (from the epoch) to a desired date format
-"""
 def toDate(secs):
+    """
+    Convert seconds (from the epoch) to a desired date format
+    """
     return time.strftime("%d%b%Y",time.localtime(secs))
 
-'''
-GetMyIPAddr() - return a valid IPv4 address
-    Sorts through the IPv4 addresses returned by gethostname() and returns the first
-'''
 def GetMyIPAddr():
+    '''
+    GetMyIPAddr() - return a valid IPv4 address
+        Sorts through the IPv4 addresses returned by gethostname() and returns the first
+    '''
     addrList = socket.getaddrinfo(socket.gethostname(), None)
     myList=[]
     for item in addrList:
@@ -30,27 +40,27 @@ def GetMyIPAddr():
 #        ipList += "<li>%s</li>" % (item)
     return myIPadrs
 
-'''
-findChartDir - given the IM settings path, return a path to the Chart Data directory
-'''
 def findChartDir(dir):
+    '''
+    findChartDir - given the IM settings path, return a path to the Chart Data directory
+    '''
     chartdir = os.path.join(dir, "Chart Data")
     if (not os.path.exists(chartdir)):
         chartdir = chartdir + ".noindex"
     return chartdir
 
-'''
-findMapsDir - return the path the the current IM version's Maps folder (containing Enabled & Disabled folders)
-'''
 def findMapsDir(dir):
+    '''
+    findMapsDir - return the path the the current IM version's Maps folder (containing Enabled & Disabled folders)
+    '''
     maps = os.path.join(dir, "Maps")
     return os.path.join(maps, "5.6")        # stub - needs to find newest #.# directory (ignoring deleted & backup)
 
-'''
-enabledState() - return the customer's map name, as well as whether it's enabled or disabled.
-    If not in either list, assume it's deleted, and return its original mapname/gid.
-'''
 def enabledState(filename, enabledMaps, disabledMaps):
+    '''
+    enabledState() - return the customer's map name, as well as whether it's enabled or disabled.
+        If not in either list, assume it's deleted, and return its original mapname/gid.
+    '''
     mapname = enabledMaps.isInDir(filename)
     if (mapname != ""):
         return (mapname, "-")
@@ -59,12 +69,12 @@ def enabledState(filename, enabledMaps, disabledMaps):
         return (mapname, "Disabled")
     return (filename, "Deleted")
 
-'''
-mapDir - return the customer's "map name" if the str matches the prefix of one of the file in dir
-    Return "" if it doesn't match the gxxxxxxxx- prefix
-    Used to scan the Maps/Enabled or Maps/Disabeled folders
-'''
 class mapDir():
+    '''
+    mapDir - return the customer's "map name" if the str matches the prefix of one of the file in dir
+        Return "" if it doesn't match the gxxxxxxxx- prefix
+        Used to scan the Maps/Enabled or Maps/Disabeled folders
+    '''
 
     def __init__(self, theDir):
         self.paths = []
@@ -85,15 +95,15 @@ class mapDir():
         else:
             return ""
 
-'''
-Process all the files in the Chart Data folder
-
-Display file change/mod dates as well as first and last time stamps from the file
-Compute the "age" of the file in number of days since last time stamp
-Ignore "MetaDataCache" files (but count them)
-
-'''
 def ScanChartDataFolder(chartdir, mapdir, outfile, brief):
+    '''
+    Process all the files in the Chart Data folder
+
+    Display file change/mod dates as well as first and last time stamps from the file
+    Compute the "age" of the file in number of days since last time stamp
+    Ignore "MetaDataCache" files (but count them)
+
+    '''
     #================================================================================
     # List of all the files, total count of files and folders & Total size of files.
     # http://mayankjohri.wordpress.com/2008/07/02/create-list-of-files-in-a-dir-tree/
