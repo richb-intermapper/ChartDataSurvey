@@ -102,7 +102,7 @@ class mapDir():
         else:
             return ""
 
-def ScanChartDataFolder(chartdir, mapdir, outfile, brief):
+def ScanChartDataFolder(chartdir, mapdir, outfile, brief, inactivedays):
     '''
     Process all the files in the Chart Data folder
 
@@ -124,6 +124,8 @@ def ScanChartDataFolder(chartdir, mapdir, outfile, brief):
     cachecount = 0
     inactivecount = 0
     inactivesize = 0
+    deletedcount = 0
+    deletedsize = 0
     newestfile = 0
     enabledMaps = mapDir(os.path.join(mapdir, "Enabled"))
     disabledMaps = mapDir(os.path.join(mapdir, "Disabled"))
@@ -142,16 +144,17 @@ def ScanChartDataFolder(chartdir, mapdir, outfile, brief):
                 cachecount += 1
             elif (fname[0:2] == "._"):                      # ignore files with ._ prefix
                 continue
+            elif (fname == ".DS_Store"):                    # ignore MacOSX .DS_Store files
+                continue
             elif (fname[0:15] == "ChartDataSurvey"):        # ignore any of our ChartDataSurvey files
                 continue
             else:
                 fileList.append(fpath)                      # collect a list of paths of chart data files
                 if (os.path.getmtime(fpath) > newestfile):
                     newestfile = os.path.getmtime(fpath)    # remember the newest file mod date
-
-
     # print ("Newest: %d, %s") % (newestfile, toDate(newestfile))
 
+    # Figure out whether the files are big-endian or little-endian
     for fp in fileList:                                     # scan the files looking for evidence of big/little endian-ness
         if (fp[-4:] == "RtyB"):                             # Only need to find one - usually won't have to look at very many
             byteorder = "<i"                                # little endian
@@ -160,6 +163,7 @@ def ScanChartDataFolder(chartdir, mapdir, outfile, brief):
             byteorder = ">i"                                # big endian
             break
 
+    # Scan each file to collect its information
     fileStats = []          # Formatted info about each file
     for fp in fileList:
         filename = os.path.split(fp)[1]
@@ -168,6 +172,9 @@ def ScanChartDataFolder(chartdir, mapdir, outfile, brief):
         modtime = toDate(os.path.getmtime(fp))
         flen = os.path.getsize(fp)
         (dirname, mapState) = enabledState(dirname, enabledMaps, disabledMaps)
+        if (mapState == "Deleted"):
+            deletedcount += 1
+            deletedsize += flen
         if (flen <= 0):
             emptyCount += 1
             first = "-"
@@ -190,7 +197,7 @@ def ScanChartDataFolder(chartdir, mapdir, outfile, brief):
                 last+="::"+str(flen%8)
             lastsec = lastsec/(3600*24)
             now = newestfile/(3600*24)
-            if (now - lastsec > 30):                    # no data within last N days? treat as inactive
+            if (now - lastsec > inactivedays):          # no data within last N days? treat as inactive
                 inactive = str(int(now-lastsec))
                 inactivecount += 1
                 inactivesize += flen
@@ -202,12 +209,13 @@ def ScanChartDataFolder(chartdir, mapdir, outfile, brief):
         fileStats.append(outstr)
 
     retstr = ""
-    retstr += "Chart Data Survey: %s %s\n" % (GetMyIPAddr(), time.strftime("%d%b%Y-%H:%M"))
-    retstr += "Data Files: %d contining %d bytes\n" % (len(fileList), fileSize)
-    retstr += "Inactive files: %d containing %d bytes\n" % (inactivecount, inactivesize)
-    retstr += "Cache files: %d containing %d bytes\n" % (cachecount, cachesize)
-    retstr += "Empty Files: %d\n" % (emptyCount)
-    retstr += "Total Folders: %d\n" % (folderCount)
+    retstr += "Chart Data Survey for %s on %s\n" % (GetMyIPAddr(), time.strftime("%d%b%Y-%H:%M"))
+    retstr += "%d Chart Files contining %d bytes\n" % (len(fileList), fileSize)
+    retstr += "%d Chart files containing %d bytes associated with deleted maps \n" % (deletedcount, deletedsize)
+    retstr += "%d Inactive files containing %d bytes with no new data for %d days\n" % (inactivecount, inactivesize, inactivedays)
+#    retstr += "Cache files: %d containing %d bytes\n" % (cachecount, cachesize)
+    retstr += "%d Empty files\n" % (emptyCount)
+    retstr += "%d Total maps\n" % (folderCount)
 
     outfile.write(retstr)
     outfile.write("Map      \tDatapoint\tState\tLength\tcTime    \tmTime    \tFirst   \tLast    \tDays Idle\n")
@@ -254,7 +262,7 @@ def main(argv=None):
     mapdir = findMapsDir(settingsdir)
     outfilename = "ChartDataSurvey-%s-%s.txt" % (GetMyIPAddr(), toDate(time.time()))
     outfile = open(os.path.join(outfiledir,outfilename), 'w')
-    retstr = ScanChartDataFolder(chartdir, mapdir, outfile, brief)
+    retstr = ScanChartDataFolder(chartdir, mapdir, outfile, brief, 30)
     outfile.close()
 
     ### Set the return value from the script
