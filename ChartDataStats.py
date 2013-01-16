@@ -268,6 +268,7 @@ def main(argv=None):
     outfilename = "ChartDataSurvey-%s.txt" % (toDate(time.time()))
     outfile = open(os.path.join(outfiledir,outfilename), 'w')
     retstr = ScanChartDataFolder(chartdir, mapdir, outfile, brief, 30)
+    retstr += "Use the web interface to retrieve the results at ~files/extensions/%s" % (outfilename)
     outfile.close()
 
     ### Set the return value from the script
