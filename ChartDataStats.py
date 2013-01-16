@@ -25,19 +25,26 @@ def toDate(secs):
 def GetMyIPAddr():
     '''
     GetMyIPAddr() - return a valid IPv4 address
-        Sorts through the IPv4 addresses returned by gethostname() and returns the first
+        First try to connect to Google, and use the resulting local address
+        If that fails, sort through the IPv4 addresses returned by gethostname() and returns the first
+        Found at: http://www.linux-support.com/cms/get-local-ip-address-with-python/
+            and other sites
     '''
-    addrList = socket.getaddrinfo(socket.gethostname(), None)
-    myList=[]
-    for item in addrList:
-        if (item[0] == 2):		        # "2" indicates IPv4 address
-            myList.append(item[4][0])
-    myList = sorted(set(myList))        # now list holds unique addresses
 
-    myIPadrs = myList[0]
-#    ipList = ""
-#    for item in myList:
-#        ipList += "<li>%s</li>" % (item)
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('www.google.com', 8000))
+        myIPadrs = s.getsockname()[0]
+        s.close()
+    except:
+        addrList = socket.getaddrinfo(socket.gethostname(), None)
+        myList=[]
+        for item in addrList:
+            if (item[0] == 2):		        # "2" indicates IPv4 address
+                myList.append(item[4][0])
+        myList = sorted(set(myList))        # now list holds unique addresses
+        myIPadrs = myList[0]
+
     return myIPadrs
 
 def findChartDir(dir):
