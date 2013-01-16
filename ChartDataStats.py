@@ -3,6 +3,7 @@ import time
 import sys
 import struct
 import getopt
+import socket
 
 
 """
@@ -10,6 +11,24 @@ Convert seconds (from the epoch) to a desired date format
 """
 def toDate(secs):
     return time.strftime("%d%b%Y",time.localtime(secs))
+
+'''
+GetMyIPAddr() - return a valid IPv4 address
+    Sorts through the IPv4 addresses returned by gethostname() and returns the first
+'''
+def GetMyIPAddr():
+    addrList = socket.getaddrinfo(socket.gethostname(), None)
+    myList=[]
+    for item in addrList:
+        if (item[0] == 2):		        # "2" indicates IPv4 address
+            myList.append(item[4][0])
+    myList = sorted(set(myList))        # now list holds unique addresses
+
+    myIPadrs = myList[0]
+#    ipList = ""
+#    for item in myList:
+#        ipList += "<li>%s</li>" % (item)
+    return myIPadrs
 
 '''
 findChartDir - given the IM settings path, return a path to the Chart Data directory
@@ -166,7 +185,7 @@ def ScanChartDataFolder(chartdir, mapdir, outfile, brief):
         fileStats.append(outstr)
 
     retstr = ""
-    retstr += "Chart Data Survey: %s\n" % (time.strftime("%d%b%Y-%H:%M"))
+    retstr += "Chart Data Survey: %s %s\n" % (GetMyIPAddr(), time.strftime("%d%b%Y-%H:%M"))
     retstr += "Data Files: %d contining %d bytes\n" % (len(fileList), fileSize)
     retstr += "Inactive files: %d containing %d bytes\n" % (inactivecount, inactivesize)
     retstr += "Cache files: %d containing %d bytes\n" % (cachecount, cachesize)
@@ -216,8 +235,8 @@ def main(argv=None):
         outfiledir = chartdir                   # write the file to the chart directory
 
     mapdir = findMapsDir(settingsdir)
-    datestamp = "ChartDataSurvey-" + toDate(time.time()) + ".txt"
-    outfile = open(os.path.join(outfiledir,datestamp), 'w')
+    outfilename = "ChartDataSurvey-%s-%s.txt" % (GetMyIPAddr(), toDate(time.time()))
+    outfile = open(os.path.join(outfiledir,outfilename), 'w')
     retstr = ScanChartDataFolder(chartdir, mapdir, outfile, brief)
     outfile.close()
 
@@ -240,7 +259,7 @@ def main(argv=None):
     # severity = "Severity is '%s'; " % arg
 
     ### Print a line to stdout with variables
-    print "\{ $val1 := '%s' }%s" % (datestamp,retstr)
+    print "\{ $val1 := '%s' }%s" % (outfilename,retstr)
     #print "Done!
 
     ### Return value from this function sets the script's exit code
