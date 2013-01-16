@@ -210,7 +210,7 @@ def ScanChartDataFolder(chartdir, mapdir, outfile, brief, inactivedays):
 
     retstr = ""
     retstr += "Chart Data Survey for %s on %s\n" % (GetMyIPAddr(), time.strftime("%d%b%Y-%H:%M"))
-    retstr += "%d Chart Files contining %d bytes\n" % (len(fileList), fileSize)
+    retstr += "%d Chart Files containing %d bytes\n" % (len(fileList), fileSize)
     retstr += "%d Chart files containing %d bytes associated with deleted maps \n" % (deletedcount, deletedsize)
     retstr += "%d Inactive files containing %d bytes with no new data for %d days\n" % (inactivecount, inactivesize, inactivedays)
 #    retstr += "Cache files: %d containing %d bytes\n" % (cachecount, cachesize)
