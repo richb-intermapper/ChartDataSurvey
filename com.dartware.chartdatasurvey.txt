@@ -325,7 +325,7 @@ def main(argv=None):
         chartdir = findChartDir(settingsdir)
     else:                                       # argument supplied the IM settings directory
         chartdir = findChartDir(settingsdir)
-        outfiledir = chartdir                   # write the file to the chart directory
+        outfiledir = os.getcwd()                # Output the results to the current working directory
 
     mapdir = findMapsDir(settingsdir)
     outfilename = "ChartDataSurvey-%s.txt" % (toDate(time.time()))
