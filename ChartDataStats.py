@@ -242,7 +242,7 @@ def main(argv=None):
     try:
         opts, args = getopt.getopt(sys.argv[1:], "s:b:", ["settings=", "brief="])
     except getopt.GetoptError, e:
-        print "ChartDataSurvey.p [--settings='directorypath'] [--brief=1]"
+        print "ChartDataSurvey.p [--settings 'IM-Settings-Path'] [--brief=1]"
         sys.exit(1)
 
     settingsdir = ""
