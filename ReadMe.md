@@ -1,6 +1,6 @@
 # Chart Data Survey for InterMapper
 
-There are two interesting files here:
+There are three interesting files here:
 
 * ChartDataStats.py - a Python program that scans a named Chart Data folder,
 and displays the creation date/data last modified for all charts present, 
@@ -11,6 +11,8 @@ and the time stamps of the first and last data value contained within the chart 
 to scan their Chart Data folder. 
 This probe invokes the ChartDataStats.py program as a command-line, then saves the output in the
 Extensions folder so that it can be retrieved via the HTTP API.
+
+* Sample ChartDataSurvey-28Mar2013.txt - a sample output file showing the data that's displayed.
 
 ## Background
 
