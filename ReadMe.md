@@ -1,3 +1,19 @@
+# Chart Data Survey for InterMapper
+
+There are two interesting files here:
+
+* ChartDataStats.py - a Python program that scans a named Chart Data folder,
+and displays the creation date/data last modified for all charts present, 
+the size of each of the files,
+and the time stamps of the first and last data value contained within the chart data file.
+
+* com.dartware.chartdatasurvey.txt - an InterMapper probe that a customer can import
+to scan their Chart Data folder. 
+This probe invokes the ChartDataStats.py program as a command-line, then saves the output in the
+Extensions folder so that it can be retrieved via the HTTP API.
+
+## Background
+
 This InterMapper command-line probe collects survey information
 about the chart data files of an InterMapper server, as well as aging information about each
 chart data file. It collects the information, and dumps it to a file with this tab-delimited format:
