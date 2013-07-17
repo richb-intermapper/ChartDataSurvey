@@ -1,0 +1,59 @@
+Chart Data Survey for 192.168.2.137 on 28Mar2013-21:31
+43621 Chart Files containing 1156571703 bytes
+1065 Chart files containing 13609168 bytes associated with deleted maps 
+10723 Inactive files containing 690843016 bytes with no new data for 30 days
+32152 Empty files
+67 Total maps
+Map      	Datapoint	State	Length	cTime    	mTime    	First   	Last    	Days Idle
+Big WISP.map	L10e-RtiB	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Big WISP.map	L10e-RtyB	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Big WISP.map	L10e-TtiB	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Big WISP.map	L10e-TtyB	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Big WISP.map	L15e-RtiB	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Big WISP.map	L15e-RtyB	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Big WISP.map	L15e-TtiB	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Big WISP.map	L15e-TtyB	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Big WISP.map	L373-RtiB	Disabled	0	01Mar2013	06Apr2012	-	-	-
+
+...
+
+Tami 2 - 2-21-05.map	R85-300c	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Tami 2 - 2-21-05.map	R85-LkPR	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Tami 2 - 2-21-05.map	R85-tRiB	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Tami 2 - 2-21-05.map	Rb-200c	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Tami 2 - 2-21-05.map	Rb-300c	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Tami 2 - 2-21-05.map	Rb-LkPR	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Tami 2 - 2-21-05.map	Rb-sLkP	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Tami 2 - 2-21-05.map	Rb-tRiB	Disabled	0	01Mar2013	06Apr2012	-	-	-
+Example.com National Map	L1a-litU	-	3164896	28Mar2013	28Mar2013	15Mar2012	28Mar2013	-
+Example.com National Map	L1b-litU	-	3161344	28Mar2013	28Mar2013	15Mar2012	28Mar2013	-
+Example.com National Map	L1c-litU	-	3149600	28Mar2013	28Mar2013	15Mar2012	28Mar2013	-
+Example.com Chicago Map	L5-litU	-	6357536	28Mar2013	28Mar2013	15Mar2012	28Mar2013	-
+Example.com Chicago Map	L5-RtyB	-	6366048	28Mar2013	28Mar2013	15Mar2012	28Mar2013	-
+Example.com Chicago Map	L5-TtyB	-	6361680	28Mar2013	28Mar2013	15Mar2012	28Mar2013	-
+Example.com Chicago Map	L6-litU	-	6368488	28Mar2013	28Mar2013	15Mar2012	28Mar2013	-
+Example.com Chicago Map	L6-RtyB	-	6357240	28Mar2013	28Mar2013	15Mar2012	28Mar2013	-
+Example.com Chicago Map	L6-TtyB	-	6363032	28Mar2013	28Mar2013	15Mar2012	28Mar2013	-
+Example.com Chicago Map	L8-litU	-	6365000	28Mar2013	28Mar2013	15Mar2012	28Mar2013	-
+Example.com Chicago Map	L8-RtyB	-	6370608	28Mar2013	28Mar2013	15Mar2012	28Mar2013	-
+Example.com Chicago Map	L8-TtyB	-	6358024	28Mar2013	28Mar2013	15Mar2012	28Mar2013	-
+Google Search String Positions.map	R1-300s	-	0	01Mar2013	29May2012	-	-	-
+Google Search String Positions.map	R10-300s	-	0	01Mar2013	29May2012	-	-	-
+Google Search String Positions.map	R11-300s	-	0	01Mar2013	29May2012	-	-	-
+
+...
+
+Test Map-Big	L157-TtyB	-	0	01Mar2013	27Mar2012	-	-	-
+Test Map-Big	L159-RtyB	-	0	01Mar2013	27Mar2012	-	-	-
+Test Map-Big	L159-TtyB	-	0	01Mar2013	27Mar2012	-	-	-
+Test Map-Big	L15c-RtyB	-	0	01Mar2013	29May2012	-	-	-
+Test Map-Big	L15c-TtyB	-	0	01Mar2013	29May2012	-	-	-
+Test Map-Big	L17c-RtyB	-	36936	01Mar2013	20Sep2012	05Apr2012	20Sep2012	190
+Test Map-Big	L17c-TtyB	-	34760	01Mar2013	20Sep2012	05Apr2012	20Sep2012	190
+Test Map-Big	L188-RtyB	-	0	01Mar2013	27Mar2012	-	-	-
+Test Map-Big	L188-TtyB	-	0	01Mar2013	27Mar2012	-	-	-
+Test Map-Big	L189-RtyB	-	0	01Mar2013	27Mar2012	-	-	-
+Test Map-Big	L189-TtyB	-	0	01Mar2013	27Mar2012	-	-	-
+Test Map-Big	L18a-RtyB	-	0	01Mar2013	27Mar2012	-	-	-
+
+... etc. for ~42,000 more lines
